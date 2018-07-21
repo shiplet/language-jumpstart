@@ -6,10 +6,8 @@
     "author": "Shiplet <mnshiplet@gmail.com>",
     "license": "MIT",
     "devDependencies": {
+        "eslint": "^5.2.0",
         "eslint-config-prettier": "^2.9.0",
         "eslint-plugin-import": "^2.13.0"
-    },
-    "dependencies": {
-        "eslint": "^5.2.0"
     }
 }
