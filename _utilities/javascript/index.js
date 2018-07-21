@@ -16,17 +16,17 @@ class SetupAndRunAlgorithm {
             this
         );
         this.log_results = this.log_results.bind(this);
-        this.log_unsorted_list = this.log_unsorted_list.bind(this);
-        this.log_sorted_list = this.log_sorted_list.bind(this);
+        this.debug_log_unsorted_list = this.debug_log_unsorted_list.bind(this);
+        this.debug_log_sorted_list = this.debug_log_sorted_list.bind(this);
 
         this.init();
     }
 
     init() {
         this.create_random_list_of_length();
-        this.log_unsorted_list();
+        this.debug_log_unsorted_list();
         this.run_algorithm_with_performance_metrics();
-        this.log_sorted_list();
+        this.debug_log_sorted_list();
         this.log_results();
     }
 
@@ -57,14 +57,14 @@ class SetupAndRunAlgorithm {
         );
     }
 
-    log_unsorted_list() {
+    debug_log_unsorted_list() {
         const { debug, list } = this;
         if (debug) {
             console.log("DEBUG: unsorted =>", list);
         }
     }
 
-    log_sorted_list() {
+    debug_log_sorted_list() {
         const { debug, list } = this;
         if (debug) {
             console.log("DEBUG: sorted => ", list);
