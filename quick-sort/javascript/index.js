@@ -23,5 +23,5 @@ const result = new SetupAndRunAlgorithm({
     fn: (Quick_Sort = list => {
         QuickSort(list);
     }),
-    length: 100000
+    length: 10000000
 });
