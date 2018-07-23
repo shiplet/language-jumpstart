@@ -46,9 +46,8 @@ const GetLeftChildNode = index => (index << 1) + 1;
 const GetRightChildNode = index => (index << 1) + 2;
 
 const result = new SetupAndRunAlgorithm({
-    debug: true,
     fn: (Heap_Sort = list => {
         HeapSort(list);
     }),
-    list: [16, 4, 10, 14, 7, 9, 3, 2, 8, 1]
+    length: 10000000
 });
