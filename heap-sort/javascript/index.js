@@ -21,11 +21,11 @@ const MaxHeapify = (list, index) => {
     let left = GetLeftChildNode(index);
     let right = GetRightChildNode(index);
 
-    if (left <= list.heap_size && list[left] > list[largest]) {
+    if (left < list.heap_size && list[left] > list[largest]) {
         largest = left;
     }
 
-    if (right <= list.heap_size && list[right] > list[largest]) {
+    if (right < list.heap_size && list[right] > list[largest]) {
         largest = right;
     }
 
