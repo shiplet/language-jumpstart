@@ -1,100 +1,149 @@
 (function IIFE() {
-    var gridHeight = 400;
-    var gridWidth = 400;
-    var perceivedWidth = 400;
-    var step =
-        document.getElementById("myCanvas").getAttribute("width") /
-        perceivedWidth;
-    var theGrid = createArray(gridWidth);
-    var nextGenerationGrid = createArray(gridWidth);
+    var gridSize = 600;
+    var pixelSize = 3;
+    var speed = 50;
+    var rowLength = (colLength = gridSize / pixelSize);
+    var grid, transferGrid;
 
     init();
 
     function init() {
-        populateUniverse();
-        animate();
+        let [canvas, context] = constructGridCanvas();
+        prependGridCanvasToDocumentBody(canvas);
+
+        grid = buildGridOfSize(rowLength);
+        transferGrid = buildGridOfSize(rowLength);
+
+        buildInitialGridState(context);
+
+        animate({ context, speed });
     }
 
-    function animate() {
-        drawGrid();
-        updateGrid();
-        requestAnimationFrame(animate);
+    function animate({ context, speed = 0 }) {
+        if (speed === 0) {
+            animateNormally(context);
+        } else {
+            animateWithSpeed({ context, speed });
+        }
     }
 
-    function createArray(rows) {
+    function animateNormally(context) {
+        progressGenerations(context);
+        requestAnimationFrame(function() {
+            animateNormally(context);
+        });
+    }
+
+    function animateWithSpeed({ context, speed }) {
+        setInterval(function() {
+            progressGenerations(context);
+        }, speed);
+    }
+
+    function constructGridCanvas() {
+        var canvas = document.createElement("canvas");
+        var context = canvas.getContext("2d");
+
+        canvas.style.border = "1px solid black";
+        context.canvas.width = context.canvas.height = gridSize;
+        return [canvas, context];
+    }
+
+    function prependGridCanvasToDocumentBody(canvas) {
+        document.body.prepend(canvas);
+    }
+
+    function buildGridOfSize(size) {
+        var rows = (cols = size);
         var arr = [];
-        for (var i = 0; i < rows; i++) {
-            arr[i] = [];
+        for (let i = 0; i < rows; i++) {
+            arr.push([]);
         }
         return arr;
     }
 
-    function populateUniverse() {
-        for (var row = 0; row < gridHeight; row++) {
-            for (var col = 0; col < gridWidth; col++) {
-                var aliveOrDead = Math.floor(Math.random() * 2);
-                theGrid[row][col] = aliveOrDead;
+    function buildInitialGridState(context) {
+        loopThroughGrid({ pixelFn: populateGrid, context });
+    }
+
+    function loopThroughGrid({
+        startIndex = 0,
+        endIndex = rowLength,
+        pixelFn,
+        context
+    }) {
+        for (let row = startIndex; row < endIndex; row++) {
+            for (let col = startIndex; col < endIndex; col++) {
+                pixelFn({ row, col, context });
             }
         }
     }
 
-    function drawGrid() {
-        var c = document.getElementById("myCanvas");
-        var ctx = c.getContext("2d");
-        ctx.clearRect(0, 0, gridWidth, gridHeight);
-        for (var row = 1; row < gridHeight; row += step) {
-            for (var col = 1; col < gridWidth; col += step) {
-                if (theGrid[row][col] === 1) {
-                    ctx.fillStyle = "#000000";
-                    ctx.fillRect(row, col, step, step);
-                }
-            }
+    function populateGrid({ row, col, context }) {
+        grid[row][col] = getRandomBinary();
+        drawPixel({ context, row, col, alive: grid[row][col] });
+    }
+
+    function getRandomBinary() {
+        return Math.floor(Math.random() * 2);
+    }
+
+    function drawPixel({ context, row, col, alive }) {
+        if (alive) {
+            context.fillRect(
+                row * pixelSize,
+                col * pixelSize,
+                pixelSize,
+                pixelSize
+            );
         }
     }
 
-    function getTotalSurroundingCells(row, col) {
-        var totalCells = 0;
-
-        totalCells += theGrid[row - 1][col - 1];
-        totalCells += theGrid[row - 1][col];
-        totalCells += theGrid[row - 1][col + 1];
-
-        totalCells += theGrid[row][col - 1];
-        totalCells += theGrid[row][col + 1];
-
-        totalCells += theGrid[row + 1][col - 1];
-        totalCells += theGrid[row + 1][col];
-        totalCells += theGrid[row + 1][col + 1];
-
-        return totalCells;
+    function progressGenerations(context) {
+        context.clearRect(0, 0, gridSize, gridSize);
+        loopThroughGrid({
+            pixelFn: setLifeState,
+            startIndex: 1,
+            endIndex: rowLength - 1,
+            context
+        });
+        loopThroughGrid({
+            pixelFn: updateLifeState,
+            context
+        });
     }
 
-    function isAliveOrDead(currentState, totalNeighbors) {
-        return currentState === 0
-            ? totalNeighbors === 3
-                ? 1
-                : 0
-            : totalNeighbors === 2 || totalNeighbors === 3
-                ? 1
-                : 0;
+    function setLifeState({ row, col }) {
+        var totalLivingNeighbors = getLivingNeighbors(row, col);
+        var aliveOrDead =
+            grid[row][col] === 0
+                ? totalLivingNeighbors === 3
+                    ? 1
+                    : 0
+                : totalLivingNeighbors === 2 || totalLivingNeighbors === 3
+                    ? 1
+                    : 0;
+        transferGrid[row][col] = aliveOrDead;
     }
 
-    function syncGrids() {
-        for (var row = 0; row < gridHeight; row++) {
-            for (var col = 0; col < gridWidth; col++) {
-                theGrid[row][col] = nextGenerationGrid[row][col];
-            }
-        }
+    function updateLifeState({ row, col, context }) {
+        grid[row][col] = transferGrid[row][col];
+        drawPixel({ row, col, context, alive: grid[row][col] });
     }
 
-    function updateGrid() {
-        for (var row = 1; row < gridHeight - 1; row++) {
-            for (var col = 1; col < gridWidth - 1; col++) {
-                var totalCells = getTotalSurroundingCells(row, col);
-                var nextState = isAliveOrDead(theGrid[row][col], totalCells);
-                nextGenerationGrid[row][col] = nextState;
-            }
-        }
-        syncGrids();
+    function getLivingNeighbors(row, col) {
+        let total = 0;
+        total += grid[row - 1][col - 1];
+        total += grid[row - 1][col];
+        total += grid[row - 1][col + 1];
+
+        total += grid[row][col - 1];
+        total += grid[row][col + 1];
+
+        total += grid[row + 1][col - 1];
+        total += grid[row + 1][col];
+        total += grid[row + 1][col + 1];
+
+        return total;
     }
 })();
