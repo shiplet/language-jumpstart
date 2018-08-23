@@ -1,8 +1,10 @@
-(function IIFE() {
-    var gridSize = 600;
-    var pixelSize = 3;
-    var speed = 1000 / 24;
-    var rowLength = (colLength = gridSize / pixelSize);
+(function InitializeGameOfLife() {
+    var rowSize = window.innerWidth;
+    var colSize = window.innerHeight;
+    var pixelSize = 4;
+    var speed = 50;
+    var rowLength = rowSize / pixelSize;
+    var colLength = colSize / pixelSize;
     var grid, transferGrid;
 
     init();
@@ -44,8 +46,9 @@
         var canvas = document.createElement("canvas");
         var context = canvas.getContext("2d");
 
-        canvas.style.border = "1px solid black";
-        context.canvas.width = context.canvas.height = gridSize;
+        context.canvas.width = rowSize;
+        context.canvas.height = colSize;
+        context.fillStyle = "#FFFFFF";
         return [canvas, context];
     }
 
@@ -53,8 +56,7 @@
         document.body.prepend(canvas);
     }
 
-    function buildGridOfSize(size) {
-        var rows = (cols = size);
+    function buildGridOfSize(rows) {
         var arr = [];
         for (let i = 0; i < rows; i++) {
             arr.push([]);
@@ -66,14 +68,9 @@
         loopThroughGrid({ pixelFn: populateGrid, context });
     }
 
-    function loopThroughGrid({
-        startIndex = 0,
-        endIndex = rowLength,
-        pixelFn,
-        context
-    }) {
-        for (let row = startIndex; row < endIndex; row++) {
-            for (let col = startIndex; col < endIndex; col++) {
+    function loopThroughGrid({ pixelFn, context }) {
+        for (let row = 0; row < rowLength; row++) {
+            for (let col = 0; col < colLength; col++) {
                 pixelFn({ row, col, context });
             }
         }
@@ -100,11 +97,9 @@
     }
 
     function progressGenerations(context) {
-        context.clearRect(0, 0, gridSize, gridSize);
+        context.clearRect(0, 0, rowSize, colSize);
         loopThroughGrid({
             pixelFn: setLifeState,
-            startIndex: 1,
-            endIndex: rowLength - 1,
             context
         });
         loopThroughGrid({
@@ -133,16 +128,21 @@
 
     function getLivingNeighbors(row, col) {
         let total = 0;
-        total += grid[row - 1][col - 1];
-        total += grid[row - 1][col];
-        total += grid[row - 1][col + 1];
+
+        try {
+            total += grid[row - 1][col - 1];
+            total += grid[row - 1][col];
+            total += grid[row - 1][col + 1];
+        } catch (e) {}
 
         total += grid[row][col - 1];
         total += grid[row][col + 1];
 
-        total += grid[row + 1][col - 1];
-        total += grid[row + 1][col];
-        total += grid[row + 1][col + 1];
+        try {
+            total += grid[row + 1][col - 1];
+            total += grid[row + 1][col];
+            total += grid[row + 1][col + 1];
+        } catch (e) {}
 
         return total;
     }
