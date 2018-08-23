@@ -1,7 +1,7 @@
 (function IIFE() {
     var gridSize = 600;
     var pixelSize = 3;
-    var speed = 50;
+    var speed = 1000 / 24;
     var rowLength = (colLength = gridSize / pixelSize);
     var grid, transferGrid;
 
